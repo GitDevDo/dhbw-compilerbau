@@ -9,8 +9,6 @@ local.properties
 
 .project
 
-.externalToolBuilders/
-
 .launch
 
 .classpath
