@@ -1,0 +1,15 @@
+.metadata
+bin/
+tmp/
+
+local.properties
+.settings/
+.loadpath
+
+.project
+
+.externalToolBuilders/
+
+.launch
+
+.classpath

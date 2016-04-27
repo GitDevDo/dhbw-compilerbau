@@ -1,0 +1,9 @@
+<program> ::= program id ";" block ".". EOF 
+
+<block> ::= begin <finished_statement> end
+
+<finished_statement> ::= <stat> ";" <finished_statement> | 
+
+<intConst> ::= number | "-" number
+
+<condStat> ::= if <cond> then <stat> | if <cond> then <stat> else <stat>
