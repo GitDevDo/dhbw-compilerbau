@@ -22,7 +22,30 @@ public class XParser {
 	}
 
 	public Tree parseProgram() {
-		//TODO Parser
+		Tree program = parseToken(Token.PROGRAM);
+		Tree identifier = parseIdentifier();
+		Tree semicolon = parseSemicolon();
+		Tree block = parseBlock();
+		Tree dot = parseToken(Token.DOT);
+		Tree eof = parseToken(Token.EOF);
+		
+		if(program != null
+				&& identifier != null
+				&& semicolon != null
+				&& block != null
+				&& dot != null
+				&& eof != null) {
+			Tree tree = new Tree(new Token(Token.APROGRAM));
+			tree.addFirstChild(dot);
+			tree.addFirstChild(block);
+			tree.addFirstChild(semicolon);
+			tree.addFirstChild(identifier);
+			tree.addFirstChild(identifier);
+			tree.addFirstChild(program);
+			
+			return tree;
+		}
+		
 		return null;
 	}
 	
@@ -147,7 +170,7 @@ public class XParser {
 		Tree expression2 = parseNumberExpression();
 		
 		if (expression1 != null && operator != null && expression2 != null) {
-			Tree tree = new Tree(new Token(Token.EXPR3));
+			Tree tree = new Tree(new Token(Token.EXPR));
 			tree.addFirstChild(expression2);
 			tree.addFirstChild(operator);
 			tree.addFirstChild(expression1);
@@ -228,7 +251,7 @@ public class XParser {
 		Tree rightP = parseToken(Token.RBR);
 		
 		if(leftP != null && expression != null && rightP != null) {
-			Tree tree = new Tree(new Token(Token.EXPR2));			
+			Tree tree = new Tree(new Token(Token.EXPR));			
 			tree.addFirstChild(rightP);
 			tree.addFirstChild(expression);
 			tree.addFirstChild(leftP);
