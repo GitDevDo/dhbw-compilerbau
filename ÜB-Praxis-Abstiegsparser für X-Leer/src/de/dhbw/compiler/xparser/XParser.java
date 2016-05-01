@@ -78,10 +78,13 @@ public class XParser {
 		Tree statWithSemi;
 		
 		while((statWithSemi = parseStatWithSemi()) != null) {
-			statlist.addFirstChild(statWithSemi);
+			statlist.addLastChild(statWithSemi);
 		}
 		
-		setTokenStreamPosition(myPosition);
+		if (statlist.getChildCount() == 0) {
+			setTokenStreamPosition(myPosition);
+		}
+		
 		return statlist;
 	}
 
@@ -183,9 +186,9 @@ public class XParser {
 	private Tree parseCondition() {
 		int myPosition = getTokenStreamPosition();
 		
-		Tree expression1 = parseNumberExpression3();
+		Tree expression1 = parseNumberExpression();
 		Tree operator = parseLogicOperator();
-		Tree expression2 = parseNumberExpression3();
+		Tree expression2 = parseNumberExpression();
 		
 		if (expression1 != null && operator != null && expression2 != null) {
 			Tree tree = new Tree(new Token(Token.COND));
@@ -232,9 +235,8 @@ public class XParser {
 		if( (unaryMinus = parseMinus()) != null
 				&& (expression = parseInteger()) != null) {
 			Tree tree = new Tree(new Token(Token.EXPR3));
-			Tree unary = new Tree(new Token(Token.UMINUS));
 			tree.addFirstChild(expression);
-			tree.addFirstChild(unary);
+			tree.addFirstChild(unaryMinus);
 			
 			return tree;
 		}
@@ -284,7 +286,7 @@ public class XParser {
 		if ((numExpr3 = parseNumberExpression3()) != null
 				&& (operator = parseMultOrDivOp()) != null
 				&& (numExpr2 = parseNumberExpression2()) != null) {
-			Tree tree = new Tree(new Token(Token.EXPR));
+			Tree tree = new Tree(new Token(Token.EXPR2));
 			tree.addFirstChild(numExpr2);
 			tree.addFirstChild(operator);
 			tree.addFirstChild(numExpr3);
@@ -295,7 +297,7 @@ public class XParser {
 		
 		numExpr3 = parseNumberExpression3();
 		if (numExpr3 != null) {
-			Tree tree = new Tree(new Token(Token.EXPR));
+			Tree tree = new Tree(new Token(Token.EXPR2));
 			tree.addFirstChild(numExpr3);
 			
 			return tree;
