@@ -12,6 +12,7 @@
 package de.dhbw.compiler.xparser;
 
 public class XParser {
+	private int counter = 0;
 	private TokenReader tokenReader;
 
 	public XParser(TokenReader in) {
@@ -41,6 +42,7 @@ public class XParser {
 			tree.addFirstChild(semicolon);
 			tree.addFirstChild(identifier);
 			tree.addFirstChild(program);
+			System.out.println(counter);
 			
 			return tree;
 		}
@@ -487,7 +489,7 @@ public class XParser {
 
 	private Tree parseToken(int tokenType) {
 		int myPosition = getTokenStreamPosition();
-		
+		counter++;
 		Token token;
 		if ((token = nextToken()).getType() == tokenType) {
 			return new Tree(token);
