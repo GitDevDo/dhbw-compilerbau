@@ -5,14 +5,14 @@
  * Prof. Dr. Jörn Eisenbiegler
  * 
  * Vorlesung Übersetzerbau
- * Praxis X-Scanner mit JFlex
+ * Praxis X Abstiegsparser
  * - Scanner-Definition
  * 
  * **********************************************
  */
 
 
-package de.dhbw.compiler.JFlexXScanner;
+package de.dhbw.compiler.xparser;
 
 
 /**

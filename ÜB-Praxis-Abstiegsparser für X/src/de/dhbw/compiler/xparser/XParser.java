@@ -37,40 +37,6 @@ public class XParser {
 		}
 	}
 
-	public Tree parsType() {
-		int myPosition = in.getPosition();
-		Tree type;
-
-		// type ::= int | float | string.
-
-		// type ::= int.
-		if (((type = parseToken(Token.INT)) != null)) {
-			Tree tree = new Tree(new Token(Token.TYPE));
-			tree.addLastChild(type);
-			return tree;
-		}
-		in.setPosition(myPosition);
-
-		// type ::= float.
-		if (((type = parseToken(Token.FLOAT)) != null)) {
-			Tree tree = new Tree(new Token(Token.TYPE));
-			tree.addLastChild(type);
-			return tree;
-		}
-		in.setPosition(myPosition);
-
-		// type ::= string.
-		if (((type = parseToken(Token.STRING)) != null)) {
-			Tree tree = new Tree(new Token(Token.TYPE));
-			tree.addLastChild(type);
-			return tree;
-		}
-		in.setPosition(myPosition);
-
-		// fail
-		return null;
-	}
-
 	public Tree parseModifier() {
 		int myPosition = in.getPosition();
 		Tree read, print;
@@ -481,41 +447,31 @@ public class XParser {
 
 		// stat ::= assignstat.
 		if (((stat = parseAssignStat()) != null)) {
-			Tree tree = new Tree(new Token(Token.STAT));
-			tree.addLastChild(stat);
-			return tree;
+			return stat;
 		}
 		in.setPosition(myPosition);
 
 		// stat ::= condstat.
 		if (((stat = parseCondStat()) != null)) {
-			Tree tree = new Tree(new Token(Token.STAT));
-			tree.addLastChild(stat);
-			return tree;
+			return stat;
 		}
 		in.setPosition(myPosition);
 
 		// stat ::= whilestat.
 		if (((stat = parseWhileStat()) != null)) {
-			Tree tree = new Tree(new Token(Token.STAT));
-			tree.addLastChild(stat);
-			return tree;
+			return stat;
 		}
 		in.setPosition(myPosition);
 
 		// stat ::= forstat.
 		if (((stat = parseForStat()) != null)) {
-			Tree tree = new Tree(new Token(Token.STAT));
-			tree.addLastChild(stat);
-			return tree;
+			return stat;
 		}
 		in.setPosition(myPosition);
 
 		// stat ::= block.
 		if (((stat = parseBlock()) != null)) {
-			Tree tree = new Tree(new Token(Token.STAT));
-			tree.addLastChild(stat);
-			return tree;
+			return stat;
 		}
 		in.setPosition(myPosition);
 
@@ -525,17 +481,13 @@ public class XParser {
 
 	public Tree parseBlock() {
 		int myPosition = in.getPosition();
-		Tree tbegin, statlist, tend;
+		Tree statlist;
 
 		// block ::= begin statlist end.
-		if (((tbegin = parseToken(Token.BEGIN)) != null)
+		if ((parseToken(Token.BEGIN) != null)
 				&& ((statlist = parseStatlist()) != null)
-				&& ((tend = parseToken(Token.END)) != null)) {
-			Tree tree = new Tree(new Token(Token.BLOCK));
-			tree.addLastChild(tbegin);
-			tree.addLastChild(statlist);
-			tree.addLastChild(tend);
-			return tree;
+				&& (parseToken(Token.END) != null)) {
+			return statlist;
 		}
 		in.setPosition(myPosition);
 
@@ -556,15 +508,12 @@ public class XParser {
 
 	public Tree parseStatwithsemi() {
 		int myPosition = in.getPosition();
-		Tree stat, semicolon;
+		Tree stat;
 
 		// statwithsemi ::= stat ";"
 		if ((((stat = parseStat())) != null)
-				&& ((semicolon = parseToken(Token.SEMICOLON)) != null)) {
-			Tree tree = new Tree(new Token(Token.STATWITHSEMI));
-			tree.addLastChild(stat);
-			tree.addLastChild(semicolon);
-			return tree;
+				&& (parseToken(Token.SEMICOLON) != null)) {
+			return stat;
 		}
 		in.setPosition(myPosition);
 
@@ -585,25 +534,20 @@ public class XParser {
 
 	public Tree parseProgram() {
 		int myPosition = in.getPosition();
-		Tree program, id, semicolon, decllist, block, dot, eof;
+		Tree program, id, decllist, statlist;
 
 		// program ::= program id ";" decllist block "." EOF.
 		if (((program = parseToken(Token.PROGRAM)) != null)
-				&& (((id = parseToken(Token.ID))) != null)
-				&& ((semicolon = parseToken(Token.SEMICOLON)) != null)
+				&& ((id = parseToken(Token.ID)) != null)
+				&& (parseToken(Token.SEMICOLON) != null)
 				&& ((decllist = parseDecllist()) != null)
-				&& ((block = parseBlock()) != null)
-				&& ((dot = parseToken(Token.DOT)) != null)
-				&& ((eof = parseToken(Token.EOF)) != null)) {
-			Tree tree = new Tree(new Token(Token.APROGRAM));
-			tree.addLastChild(program);
-			tree.addLastChild(id);
-			tree.addLastChild(semicolon);
-			tree.addLastChild(decllist);
-			tree.addLastChild(block);
-			tree.addLastChild(dot);
-			tree.addLastChild(eof);
-			return tree;
+				&& ((statlist = parseBlock()) != null)
+				&& (parseToken(Token.DOT) != null)
+				&& (parseToken(Token.EOF) != null)) {
+			program.addFirstChild(statlist);
+			program.addFirstChild(decllist);
+			program.addFirstChild(id);
+			return program;
 		}
 		in.setPosition(myPosition);
 
