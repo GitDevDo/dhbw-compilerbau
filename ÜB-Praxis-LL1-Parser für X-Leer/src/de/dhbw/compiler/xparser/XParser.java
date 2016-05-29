@@ -12,25 +12,372 @@
 package de.dhbw.compiler.xparser;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 public class XParser {
 	private TokenBuffer in = null;
 	private long comparecount = 0;
+	
+	private Set<Integer> PlusMinus;
+	private Set<Integer> MultDiv;
 
 	public XParser(TokenBuffer in) {
 		this.in = in;
+		PlusMinus = new HashSet<Integer>();
+		PlusMinus.add(Token.PLUS);
+		PlusMinus.add(Token.MINUS);
+		MultDiv = new HashSet<Integer>();
+		MultDiv.add(Token.MULT);
+		MultDiv.add(Token.DIV);
 	}
 
 	public long getCompareCount() {
 		return this.comparecount;
 	}
 	
-	public Tree parseCondStat2() throws IOException {
+	private Tree addLeftAssoziativ(Tree left, Tree opRight, Set<Integer> samePrio) {
+		Tree right = opRight.getChild(0);
+		
+		if (right.getChildren().isEmpty() || !samePrio.contains(right.getToken().getType())) {
+			opRight.addFirstChild(left);
+			return opRight;
+		} else {
+			Tree leftop = right;
+			while (samePrio.contains(leftop.getChild(0).getToken().getType())) {
+				leftop = leftop.getChild(0);
+			}
+			Tree leftright = leftop.getChild(0);
+			leftop.removeChild(0);
+			opRight.addLastChild(leftright);
+			opRight.addFirstChild(left);
+			leftop.addFirstChild(opRight);
+			return right;
+		}
+	}
+	
+	public Tree parseModifier2() throws IOException {
 		switch(lookaheadToken().getType()) {
+		case Token.PRINT:
+			return parseToken(Token.PRINT);
+		case Token.ID:
+			return new Tree(null);		 
+		default:
+			printError(lookaheadToken(), Token.PRINT, Token.ID);
+		 	return null;
+	 	}
+	}
+	
+	public Tree parseModifier() throws IOException {
+		switch(lookaheadToken().getType()) {
+		case Token.READ: {
+			Tree read, modifier2;
+			
+			if ((read = parseToken(Token.READ)) != null &&
+					((modifier2 = parseModifier2()) != null)) {
+				Tree modifier = new Tree(new Token(Token.MODIFIER));
+				modifier.addFirstChild(read);
+				modifier.addLastChild(modifier2);
+				return modifier;
+			}
+			return null;
+		}
+		case Token.PRINT: {
+			Tree print;
+			
+			if ((print = parseToken(Token.PRINT)) != null) {
+				Tree modifier = new Tree(new Token(Token.MODIFIER));
+				modifier.addFirstChild(print);
+				return modifier;
+			}
+			return null;
+		}
+		case Token.ID:
+			return new Tree(null);
+		 
+		default:
+			printError(lookaheadToken(), Token.READ, Token.PRINT, Token.ID);
+		 	return null;
+	 	}
+	}
+	
+	public Tree parseType() throws IOException {
+		switch(lookaheadToken().getType()) {
+		case Token.INT:
+			return parseToken(Token.INT);
+		case Token.FLOAT:
+			return parseToken(Token.FLOAT);
+		case Token.STRING:
+			return parseToken(Token.STRING);
+		 
+		default:
+			printError(lookaheadToken(), Token.INT, Token.FLOAT, Token.STRING);
+		 	return null;
+	 	}
+	}
+	
+	public Tree parseDecl() throws IOException {
+		switch(lookaheadToken().getType()) {
+		case Token.READ:
+		case Token.PRINT:
+		case Token.ID:
+			Tree modifier, id, type;
+			
+			if(((modifier = parseModifier()) != null) &&
+					((id = parseToken(Token.ID)) != null) &&
+					(parseToken(Token.COLON) != null) &&
+					((type = parseType()) != null) &&
+					(parseToken(Token.SEMICOLON) != null)) {
+				Tree decl = new Tree(new Token(Token.DECL));
+				decl.addLastChild(id);
+				decl.addLastChild(type);
+				decl.addLastChild(modifier);
+				return decl;
+			}
+			
+			return null;		 
+		default:
+			printError(lookaheadToken(), Token.READ, Token.PRINT, Token.ID);
+		 	return null;
+	 	}
+	}
+	
+	public Tree parseExpr3a() throws IOException {
+		switch(lookaheadToken().getType()) {
+		case Token.INTCONST :
+			return parseToken(Token.INTCONST);
+		case Token.FLOATCONST:
+			return parseToken(Token.FLOATCONST);
+			
+		default:
+			printError(lookaheadToken(), Token.INTCONST, Token.FLOATCONST);
+		 	return null;
+	 	}	
+	}
+	
+	public Tree parseExpr3() throws IOException {
+		switch(lookaheadToken().getType()) {
+		case Token.MINUS: {
+			Tree minus, expr3a;
+			Token uminus;
+			
+			if (((minus = parseToken(Token.MINUS)) != null) &&
+					((expr3a = parseExpr3a()) != null)) {
+				uminus = new Token(Token.UMINUS, "-", minus.getToken().getLine(), minus.getToken().getColumn());
+				minus = new Tree(uminus);
+				minus.addLastChild(expr3a);
+				return minus;
+			}
+			return null;
+		}
+		case Token.INTCONST:
+			return parseToken(Token.INTCONST);
+		case Token.FLOATCONST:
+			return parseToken(Token.FLOATCONST);
+		case Token.STRINGCONST:
+			return parseToken(Token.STRINGCONST);
+		case Token.ID:
+			return parseToken(Token.ID);
+		case Token.LBR:
+			return parseToken(Token.LBR);
+			
+		default:
+			printError(lookaheadToken(), Token.MINUS, Token.INTCONST, Token.FLOATCONST,
+					Token.STRINGCONST, Token.ID, Token.LBR);
+		 	return null;
+	 	}
+	}
+	
+	public Tree parseExpr2a() throws IOException {
+		switch(lookaheadToken().getType()) {
+		case Token.MULT: {
+			Tree mult, right;
+			
+			if(((mult = parseToken(Token.MULT)) != null) &&
+					((right = parseExpr2()) != null)) {
+				mult.addLastChild(right);
+				return mult;
+			}
+		}
+		case Token.DIV: {
+			Tree div, right;
+			
+			if(((div = parseToken(Token.DIV)) != null) &&
+					((right = parseExpr2()) != null)) {
+				div.addLastChild(right);
+				return div;
+			}
+		}
+		case Token.PLUS:
+		case Token.MINUS:
+		case Token.SEMICOLON:
+		case Token.LESS:
+		case Token.MORE:
+		case Token.EQUALS:
+		case Token.RBR:
+		case Token.THEN:
+		case Token.ELSE:
+			return new Tree(null);
+		 
+		default:
+			printError(lookaheadToken(), Token.MULT, Token.DIV,Token.PLUS, Token.MINUS, Token.SEMICOLON,
+					Token.LESS, Token.MORE, Token.EQUALS, Token.RBR, Token.THEN, Token.ELSE);
+		 	return null;
+	 	}
+	}
+	
+	public Tree parseExpr2() throws IOException {
+		switch(lookaheadToken().getType()) {
+		case Token.MINUS:
+		case Token.INTCONST:
+		case Token.FLOATCONST:
+		case Token.STRINGCONST:
+		case Token.ID:
+		case Token.LBR: {
+			Tree expr3, expr2a;
+			
+			if (((expr3 = parseExpr3()) != null) &&
+					(((expr2a = parseExpr2a())) != null)) {
+				return addLeftAssoziativ(expr3, expr2a, MultDiv);
+			}
+			return null;
+		}
+		default:
+			printError(lookaheadToken(), Token.MINUS, Token.INTCONST,
+					Token.FLOATCONST, Token.STRINGCONST, Token.ID, Token.LBR);
+		 	return null;
+	 	}
+	}
+	
+	public Tree parseExpr1a() throws IOException {
+		switch(lookaheadToken().getType()) {
+		 case Token.PLUS: {
+			 Tree plus, right;
+			 
+			 if(((plus = parseToken(Token.PLUS)) != null) &&
+					 ((right = parseExpr()) != null)) {
+				 plus.addLastChild(right);
+				 return plus;
+			 }
+			 return null;
+		 }
+		 case Token.MINUS: {
+			 Tree minus, right;
+			 
+			 if(((minus = parseToken(Token.MINUS)) != null) &&
+					 ((right = parseExpr()) != null)) {
+				 minus.addLastChild(right);
+				 return minus;
+			 }
+			 return null;
+		 }
+		 case Token.SEMICOLON:
+		 case Token.LESS:
+		 case Token.MORE:
+		 case Token.EQUALS:
+		 case Token.RBR:
+		 case Token.THEN:
+		 case Token.ELSE:
+			 return new Tree(null);
+		 default:
+		 	printError(lookaheadToken(), Token.PLUS, Token.MINUS, Token.SEMICOLON, Token.LESS,
+		 			Token.MORE, Token.EQUALS, Token.RBR, Token.THEN, Token.ELSE);
+		 	return null;
+	 	}
+	}
+	
+	public Tree parseExpr() throws IOException {
+		switch(lookaheadToken().getType()) {
+		 case Token.MINUS:
+		 case Token.INTCONST:
+		 case Token.FLOATCONST:
+		 case Token.STRINGCONST:
+		 case Token.ID:
+		 case Token.LBR:
+			 Tree exprl, op;
+			// expr ::= expr2 expr1a
+			if (((exprl = parseExpr2()) != null) &&
+					((op = parseExpr1a()) != null)) {
+				return addLeftAssoziativ(exprl, op, PlusMinus);
+			}
+			return null;
+			
+		 default:
+		 	printError(lookaheadToken(), Token.MINUS, Token.INTCONST, Token.FLOATCONST,
+		 			Token.STRINGCONST, Token.ID, Token.LBR);
+		 	return null;
+	 	}
+	}
+	
+	public Tree parseAssignStat() throws IOException {
+		switch(lookaheadToken().getType()) {
+		 case Token.ID:
+				Tree id, assign, expr;
+
+				// assignStat ::= id ":=" expr ";".
+				if (((id = parseToken(Token.ID)) != null)
+						&& ((assign = parseToken(Token.ASSIGN)) != null)
+						&& ((expr = parseExpr()) != null)) {
+					assign.addLastChild(id);
+					assign.addLastChild(expr);
+					return assign;
+				}
+				return null;
+		 default:
+		 	printError(lookaheadToken(), Token.ID);
+		 	return null;
+	 	}
+	}
+	
+	public Tree parseForStat() throws IOException {
+		switch (lookaheadToken().getType()) {
+		case Token.FOR:
+			Tree tfor, init, cond, cont, stat;
+
+			// forstat ::= for "(" assignstat cond ";" assignstat ")" stat.
+			if (((tfor = parseToken(Token.FOR)) != null) && ((parseToken(Token.LBR)) != null)
+					&& ((init = parseAssignStat()) != null) && ((parseToken(Token.SEMICOLON)) != null)
+					&& ((cond = parseCond()) != null) && ((parseToken(Token.SEMICOLON)) != null)
+					&& ((cont = parseAssignStat()) != null) && ((parseToken(Token.RBR)) != null)
+					&& ((stat = parseStat()) != null)) {
+				tfor.addLastChild(init);
+				tfor.addLastChild(cond);
+				tfor.addLastChild(cont);
+				tfor.addLastChild(stat);
+				return tfor;
+			}
+			return null;
+			
+		default:
+			printError(lookaheadToken(), Token.FOR);
+			return null;
+		}
+	}
+
+	public Tree parseWhileStat() throws IOException {
+		switch (lookaheadToken().getType()) {
+		case Token.WHILE:
+			Tree twhile, cond, stat;
+			if (((twhile = parseToken(Token.WHILE)) != null) && ((parseToken(Token.LBR)) != null)
+					&& ((cond = parseCond()) != null) && ((parseToken(Token.RBR)) != null)
+					&& ((stat = parseStat()) != null)) {
+				twhile.addLastChild(cond);
+				twhile.addLastChild(stat);
+				return twhile;
+			}
+			return null;
+
+		default:
+			printError(lookaheadToken(), Token.WHILE);
+			return null;
+		}
+	}
+
+	public Tree parseCondStat2() throws IOException {
+		switch (lookaheadToken().getType()) {
 		case Token.ELSE:
 			Tree elsestat;
-			if(((parseToken(Token.ELSE)) != null) &&
-					((elsestat = parseStat()) != null)) {
+			if (((parseToken(Token.ELSE)) != null) && ((elsestat = parseStat()) != null)) {
 				return elsestat;
 			}
 			return null;
@@ -41,15 +388,13 @@ public class XParser {
 			return null;
 		}
 	}
-	
+
 	public Tree parseCondStat() throws IOException {
 		Tree tif, cond, thenstat, elsestat;
-		switch(lookaheadToken().getType()) {
+		switch (lookaheadToken().getType()) {
 		case Token.IF:
-			if (((tif = parseToken(Token.IF)) != null)
-					&& ((cond = parseCond()) != null)
-					&& (parseToken(Token.THEN) != null)
-					&& ((thenstat = parseStat()) != null)
+			if (((tif = parseToken(Token.IF)) != null) && ((cond = parseCond()) != null)
+					&& (parseToken(Token.THEN) != null) && ((thenstat = parseStat()) != null)
 					&& ((elsestat = parseCondStat2()) != null)) {
 				tif.addLastChild(cond);
 				tif.addLastChild(thenstat);
@@ -63,7 +408,7 @@ public class XParser {
 		}
 	}
 
-	public Tree parseCond2() {
+	public Tree parseCond2() throws IOException {
 		Tree comp, right;
 		switch (lookaheadToken().getType()) {
 		case Token.LESS:
@@ -86,10 +431,11 @@ public class XParser {
 			return null;
 		default:
 			printError(lookaheadToken(), Token.LESS, Token.MORE, Token.EQUALS);
+			return null;
 		}
 	}
 
-	public Tree parseCond() {
+	public Tree parseCond() throws IOException {
 		switch(lookaheadToken().getType()) {
 		case Token.MINUS:
 		case Token.INTCONST:
@@ -97,7 +443,7 @@ public class XParser {
 		case Token.STRINGCONST:
 		case Token.ID:
 		case Token.LBR:
-			Tree left, comp
+			Tree left, comp;
 			
 			// cond ::= expr "<" expr.
 			if (((left = parseExpr()) != null)
@@ -105,10 +451,14 @@ public class XParser {
 				comp.addFirstChild(left);
 				return comp;
 			}
+		default:
+			printError(lookaheadToken(), Token.MINUS, Token.INTCONST, Token.FLOATCONST,
+					Token.STRINGCONST, Token.ID, Token.LBR);
+			return null;
 		}
 	}
 
-	public Tree parseStat() {
+	public Tree parseStat() throws IOException {
 		Tree stat;
 		switch (lookaheadToken().getType()) {
 		case Token.ID:
@@ -147,7 +497,7 @@ public class XParser {
 		}
 	}
 
-	public Tree parseBlock()throws IOException {
+	public Tree parseBlock() throws IOException {
 		switch (lookaheadToken().getType()) {
 		case Token.BEGIN:
 			Tree statlist;
@@ -163,7 +513,7 @@ public class XParser {
 		}
 	}
 
-	public Tree parseStatlist() {
+	public Tree parseStatlist() throws IOException {
 		switch (lookaheadToken().getType()) {
 		case Token.ID:
 		case Token.IF:
@@ -186,7 +536,7 @@ public class XParser {
 		}
 	}
 
-	public Tree parseStatwithsemi() {
+	public Tree parseStatwithsemi() throws IOException {
 		switch (lookaheadToken().getType()) {
 		case Token.ID:
 		case Token.IF:
@@ -206,12 +556,9 @@ public class XParser {
 			printError(lookaheadToken(), Token.ID, Token.IF, Token.WHILE, Token.FOR, Token.BEGIN);
 			return null;
 		}
-
-		// fail
-		return null;
 	}
 
-	public Tree parseDecllist() {
+	public Tree parseDecllist() throws IOException {
 		switch (lookaheadToken().getType()) {
 		case Token.READ:
 		case Token.PRINT:
