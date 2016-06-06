@@ -1,4 +1,4 @@
-// $ANTLR 3.5.2 D:\\Compilerbau\\workspace\\ÜB-Praxis-Antlr X Übersetzer - Leer\\src\\de\\dhbw\\compiler\\antlrxcompiler\\X.g 2016-06-02 10:50:56
+// $ANTLR 3.5.2 D:\\Compilerbau\\workspace\\ÜB-Praxis-Antlr X Übersetzer - Leer\\src\\de\\dhbw\\compiler\\antlrxcompiler\\X.g 2016-06-06 12:00:33
 package de.dhbw.compiler.antlrxcompiler;
 
 import org.antlr.runtime.*;

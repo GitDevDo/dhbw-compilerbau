@@ -23,6 +23,8 @@ import org.antlr.runtime.tree.DOTTreeGenerator;
 import org.antlr.runtime.tree.Tree;
 import org.antlr.stringtemplate.StringTemplate;
 
+import antlr.TreeParser;
+
 public class AntlrXCompiler {
 
 	public static void saveToGrapvizDOT(Tree tree, String name) throws FileNotFoundException {
@@ -81,13 +83,16 @@ public class AntlrXCompiler {
 		
 		XTreeAdaptor xTreeAdaptor = new XTreeAdaptor(); 
 		
-		ANTLRInputStream input = new ANTLRInputStream(new ByteArrayInputStream(TEST2.getBytes())); 
+		ANTLRInputStream input = new ANTLRInputStream(new ByteArrayInputStream(TEST.getBytes())); 
 		XLexer lexer = new XLexer(input);
 		XParser parser = new XParser(new CommonTokenStream(lexer));
 		parser.setTreeAdaptor(xTreeAdaptor);
 		CommonTree tree = parser.program().getTree();
+		System.out.println(tree.toStringTree());
 		
 		//TODO Weitere Stufen Aufrufen
-		
+		XtoJava toJava = new XtoJava(new CommonTreeNodeStream(xTreeAdaptor, tree));
+		StringTemplate template = (StringTemplate)toJava.program().getTemplate();
+		System.out.println(template.toString());
 	}
 }

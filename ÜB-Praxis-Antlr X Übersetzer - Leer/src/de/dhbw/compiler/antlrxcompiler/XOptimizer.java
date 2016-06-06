@@ -1,4 +1,4 @@
-// $ANTLR 3.5.2 D:\\Compilerbau\\workspace\\ÜB-Praxis-Antlr X Übersetzer - Leer\\src\\de\\dhbw\\compiler\\antlrxcompiler\\XOptimizer.g 2016-06-02 10:51:00
+// $ANTLR 3.5.2 D:\\Compilerbau\\workspace\\ÜB-Praxis-Antlr X Übersetzer - Leer\\src\\de\\dhbw\\compiler\\antlrxcompiler\\XOptimizer.g 2016-06-06 12:00:36
 
     package de.dhbw.compiler.antlrxcompiler;
 
@@ -20,8 +20,7 @@ public class XOptimizer extends TreeRewriter {
 		"POSDIGIT", "STATLIST", "STRINGCONST", "UMINUS", "WS", "ZERO", "'('", 
 		"')'", "'*'", "'+'", "'-'", "'.'", "'/'", "':'", "':='", "';'", "'<'", 
 		"'='", "'>'", "'begin'", "'else'", "'end'", "'float'", "'for'", "'if'", 
-		"'int'", "'print'", "'program'", "'read'", "'string'", "'then'", "'while'", 
-		"'todo'"
+		"'int'", "'print'", "'program'", "'read'", "'string'", "'then'", "'while'"
 	};
 	public static final int EOF=-1;
 	public static final int T__20=20;
@@ -66,8 +65,10 @@ public class XOptimizer extends TreeRewriter {
 	public static final int UMINUS=17;
 	public static final int WS=18;
 	public static final int ZERO=19;
-	public static final int T__46=46;
+	public static final int FLOAT=36;
+	public static final int INT=39;
 	public static final int PLUS=23;
+	public static final int STRING=43;
 
 	// delegates
 	public TreeRewriter[] getDelegates() {
